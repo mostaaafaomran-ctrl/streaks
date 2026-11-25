@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Streaks | Prayer, adhkar and habit streak tracker (PWA-ready, offline)</title>
+<meta name="description" content="Track your five prayers, adhkar, Quran and your own habits with streaks and a 12-week heatmap. Saved on your device only. Arabic and English.">
+<meta property="og:title" content="Streaks | سلسلة">
+<meta property="og:description" content="Prayer, adhkar and habit streaks with a heatmap. Private, saved on your device.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="og.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#c8553d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23c8553d'/%3E%3Cpath d='M55 14L30 56h18l-6 30 28-44H52z' fill='%23fff3dc'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#f6ead6;--ink:#3b2418;--dim:#8a6a55;--card:#fff8ea;--ln:#e6d2b5;--ac:#c8553d;--ac2:#e9a23b;--ok:#4f7d4a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Avenir Next","Segoe UI",Tahoma,system-ui,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:22px 16px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{font:800 30px Georgia,serif;color:var(--ac)}.logo small{font:600 14px system-ui;color:var(--dim);margin-inline-start:8px}
+.ctl button,.ctl select{background:var(--card);border:1px solid var(--ln);border-radius:8px;padding:6px 12px;color:var(--ink);font:inherit;cursor:pointer}
+.date{margin:20px 0 4px;font:700 26px Georgia,serif}
+.prog{height:14px;background:var(--ln);border-radius:99px;overflow:hidden;margin:10px 0 4px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--ac2),var(--ac));width:0;transition:width .3s}
+.cap{color:var(--dim);font-size:14px}
+.sec{margin-top:24px;font:700 13px system-ui;letter-spacing:2px;text-transform:uppercase;color:var(--dim)}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:10px}
+.h{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:12px 14px;cursor:pointer;display:flex;gap:12px;align-items:center;user-select:none;transition:transform .08s}
+.h:active{transform:scale(.98)}
+.h .ck{width:34px;height:34px;border-radius:50%;border:2.5px solid var(--ac);display:grid;place-items:center;flex:none;font-weight:900;color:#fff}
+.h.on{background:#f3e4c4}.h.on .ck{background:var(--ac)}
+.h .n{flex:1;min-width:0}.h .n b{display:block}.h .n span{font-size:13px;color:var(--dim)}
+.fire{font-weight:800;color:var(--ac);white-space:nowrap}
+.h .x{background:none;border:0;color:var(--dim);cursor:pointer;font-size:16px;padding:0 2px}
+.add{display:flex;gap:8px;margin-top:12px}
+.add input{flex:1;border:1px solid var(--ln);border-radius:10px;padding:9px 12px;font:inherit;background:var(--card);color:var(--ink)}
+.add button,.btn{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.alt{background:var(--card);color:var(--ink);border:1px solid var(--ln)}
+.heat{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:14px;margin-top:10px;overflow-x:auto}
+.hg{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,16px);gap:4px;direction:ltr;width:max-content}
+.hg i{width:16px;height:16px;border-radius:4px;background:#ecdcc0}
+.hg i[data-l="1"]{background:#f0c27a}.hg i[data-l="2"]{background:#e9a23b}.hg i[data-l="3"]{background:#d6743e}.hg i[data-l="4"]{background:#b23f2b}
+.hg i.f{background:transparent}
+.legend{font-size:12px;color:var(--dim);margin-top:8px;display:flex;gap:4px;align-items:center}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.stats div{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:10px;text-align:center;color:var(--dim);font-size:13px}
+.stats b{display:block;font:800 28px Georgia,serif;color:var(--ink)}
+footer{margin-top:34px;color:var(--dim);font-size:13px}
+a{color:var(--ac)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="logo">Streaks<small>سلسلة</small></div>
+<div class="ctl"><button id="lang">العربية</button> <button id="exp">Export</button> <button id="imp">Import</button><input type="file" id="file" accept="application/json" hidden></div></header>
+<div class="date" id="date"></div>
+<div class="prog"><i id="pg"></i></div><div class="cap" id="cap"></div>
+<div class="sec" data-t="prayers">Prayers</div><div class="list" id="L1"></div>
+<div class="sec" data-t="daily">Daily</div><div class="list" id="L2"></div>
+<div class="sec" data-t="mine">My habits</div><div class="list" id="L3"></div>
+<form class="add" id="af"><input id="nh" maxlength="40" data-p="newph" placeholder="Add a habit"><button>+</button></form>
+<div class="sec" data-t="stats">Overview</div>
+<div class="stats"><div><b id="sA">0</b><span data-t="best">Best streak</span></div><div><b id="sB">0</b><span data-t="perfect">Perfect days</span></div><div><b id="sC">0</b><span data-t="rate">Last 30 days</span></div></div>
+<div class="sec" data-t="heat">Last 12 weeks</div>
+<div class="heat"><div class="hg" id="hg"></div><div class="legend"><span data-t="less">Less</span><i style="background:#ecdcc0"></i><i style="background:#f0c27a"></i><i style="background:#e9a23b"></i><i style="background:#d6743e"></i><i style="background:#b23f2b"></i><span data-t="more">More</span></div></div>
+<footer>Saved on this device only. MIT. <a href="https://github.com/mostaaafaomran-ctrl/streaks">github.com/mostaaafaomran-ctrl/streaks</a></footer>
+</div>
+<script src="streaks.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const T={en:{prayers:'Prayers',daily:'Daily',mine:'My habits',stats:'Overview',best:'Best streak',perfect:'Perfect days',rate:'Last 30 days',heat:'Last 12 weeks',less:'Less',more:'More',newph:'Add a habit',day:'day',days:'days',of:'of',done:'done today',exp:'Export',imp:'Import',lang:'العربية'},
+ar:{prayers:'الصلوات',daily:'يومي',mine:'عاداتي',stats:'ملخص',best:'أطول سلسلة',perfect:'أيام كاملة',rate:'آخر ٣٠ يوم',heat:'آخر ١٢ أسبوع',less:'أقل',more:'أكثر',newph:'ضيف عادة',day:'يوم',days:'يوم',of:'من',done:'تم النهارده',exp:'تصدير',imp:'استيراد',lang:'English'}};
+const BASE=[
+{id:'fajr',g:1,en:'Fajr',ar:'الفجر'},{id:'dhuhr',g:1,en:'Dhuhr',ar:'الظهر'},{id:'asr',g:1,en:'Asr',ar:'العصر'},{id:'maghrib',g:1,en:'Maghrib',ar:'المغرب'},{id:'isha',g:1,en:'Isha',ar:'العشاء'},
+{id:'am',g:2,en:'Morning adhkar',ar:'أذكار الصباح'},{id:'pm',g:2,en:'Evening adhkar',ar:'أذكار المساء'},{id:'quran',g:2,en:'Quran page',ar:'ورد القرآن'}];
+let S;try{S=JSON.parse(localStorage.getItem('streaks.v1'))}catch(e){}
+if(!S||!S.done)S={lang:/^ar/i.test(navigator.language)?'ar':'en',custom:[],done:{}};
+const save=()=>{try{localStorage.setItem('streaks.v1',JSON.stringify(S))}catch(e){}};
+const t=k=>T[S.lang][k];
+const now=()=>new Date();
+const hs=()=>BASE.concat(S.custom.map(c=>({id:c.id,g:3,en:c.name,ar:c.name,custom:1})));
+const isDone=(id,k)=>!!(S.done[id]&&S.done[id][k]);
+function tick(id,k){S.done[id]=S.done[id]||{};if(S.done[id][k])delete S.done[id][k];else S.done[id][k]=true;save();render()}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function render(){
+  document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==='ar'?'rtl':'ltr';
+  document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));
+  $('nh').placeholder=t('newph');$('lang').textContent=t('lang');$('exp').textContent=t('exp');$('imp').textContent=t('imp');
+  const n=now(),k=Streaks.key(n);
+  $('date').textContent=n.toLocaleDateString(S.lang==='ar'?'ar-EG':'en-GB',{weekday:'long',day:'numeric',month:'long'});
+  const all=hs();let dn=0;
+  [1,2,3].forEach(g=>{
+    $('L'+g).innerHTML=all.filter(h=>h.g===g).map(h=>{
+      const on=isDone(h.id,k),st=Streaks.streaks(S.done[h.id]||{},n);if(on)dn++;
+      return '<div class="h'+(on?' on':'')+'" data-id="'+h.id+'"><div class="ck">'+(on?'\u2713':'')+'</div><div class="n"><b>'+esc(h[S.lang])+'</b><span>'+t('best')+': '+st.best+'</span></div><div class="fire">'+(st.cur?'\uD83D\uDD25 '+st.cur:'')+'</div>'+(h.custom?'<button class="x" data-del="'+h.id+'">\u2715</button>':'')+'</div>'}).join('')||'';
+  });
+  $('L3').style.display=S.custom.length?'':'none';
+  document.querySelector('[data-t=mine]').style.display=S.custom.length?'':'none';
+  $('pg').style.width=Math.round(100*dn/all.length)+'%';$('cap').textContent=dn+' '+t('of')+' '+all.length+' '+t('done');
+  // overview + heatmap
+  const cnt=d=>all.filter(h=>isDone(h.id,Streaks.key(d))).length;
+  const days=[];const end=new Date(n.getFullYear(),n.getMonth(),n.getDate(),12);
+  const dow=(end.getDay()+1)%7;// Saturday-first week
+  const startD=Streaks.addDays(end,-(12*7-1)-0);
+  let perfect=0,last30=0,best=0,run=0;
+  for(let i=0;i<12*7;i++){const d=Streaks.addDays(startD,i);days.push({d,c:cnt(d)})}
+  Object.keys(S.done).forEach(()=>{});
+  const everyDay=[];
+  for(let i=0;i<365;i++){const d=Streaks.addDays(end,-364+i);const c=cnt(d);if(c===all.length&&c>0){perfect++;run++;if(run>best)best=run}else run=0}
+  for(let i=0;i<30;i++){last30+=cnt(Streaks.addDays(end,-i))}
+  $('sA').textContent=best;$('sB').textContent=perfect;$('sC').textContent=Math.round(100*last30/(30*all.length))+'%';
+  const first=days[0].d.getDay();let cells='';
+  for(let i=0;i<first;i++)cells+='<i class="f"></i>';
+  days.forEach(x=>{const r=x.c/all.length;const l=x.c===0?0:r<.25?1:r<.5?2:r<.85?3:4;cells+='<i data-l="'+l+'" title="'+Streaks.key(x.d)+': '+x.c+'/'+all.length+'"></i>'});
+  $('hg').innerHTML=cells;
+}
+document.addEventListener('click',e=>{
+  const x=e.target.closest('[data-del]');
+  if(x){const id=x.dataset.del;S.custom=S.custom.filter(c=>c.id!==id);delete S.done[id];save();render();return}
+  const h=e.target.closest('.h');if(h)tick(h.dataset.id,Streaks.key(now()));
+});
+$('af').onsubmit=e=>{e.preventDefault();const v=$('nh').value.trim();if(!v)return;S.custom.push({id:'c'+Date.now(),name:v});$('nh').value='';save();render()};
+$('lang').onclick=()=>{S.lang=S.lang==='ar'?'en':'ar';save();render()};
+$('exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='streaks-backup.json';a.click()};
+$('imp').onclick=()=>$('file').click();
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(x=>{try{const j=JSON.parse(x);if(j&&j.done&&j.custom){S=j;save();render()}}catch(_){}})};
+// demo data for previews
+if(new URLSearchParams(location.search).get('demo')==='1'){
+  S={lang:'en',custom:[{id:'c1',name:'Read 20 pages'},{id:'c2',name:'Workout'}],done:{}};
+  const n=now(),ids=['fajr','dhuhr','asr','maghrib','isha','am','pm','quran','c1','c2'];let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+  ids.forEach((id,j)=>{S.done[id]={};for(let i=0;i<84;i++){const d=Streaks.addDays(n,-i);const p=i<9?.95:(.45+.4*Math.sin(i/9+j)*0.5+.2);if(i===0&&['isha','pm','c2'].includes(id))continue;if(rnd()<p)S.done[id][Streaks.key(d)]=true}});
+}
+render();
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
